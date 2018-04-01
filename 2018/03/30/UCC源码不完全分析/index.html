@@ -85,7 +85,7 @@
 <meta property="og:url" content="http://yoursite.com/2018/03/30/UCC源码不完全分析/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="UCC&amp;emsp;&amp;emsp;最近认真读了一下UCC源码，实际并没有跑起来代码，因此分析只能算是纸上谈兵，跑不起来原因是windows下面编译需要包含的c语言头文件存在很多__pragma指令，UCC没法处理，我又没能力改代码，64位的linux虚拟机下面跑起来需要32位的库，不然链接又有问题，很麻烦，主要是想在windows下用。gz教的话，我记得有一条，该放弃的时候马上放弃 &amp;emsp;&amp;em">
-<meta property="og:updated_time" content="2018-04-01T12:24:34.997Z">
+<meta property="og:updated_time" content="2018-04-01T15:07:10.885Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UCC简要分析">
 <meta name="twitter:description" content="UCC&amp;emsp;&amp;emsp;最近认真读了一下UCC源码，实际并没有跑起来代码，因此分析只能算是纸上谈兵，跑不起来原因是windows下面编译需要包含的c语言头文件存在很多__pragma指令，UCC没法处理，我又没能力改代码，64位的linux虚拟机下面跑起来需要32位的库，不然链接又有问题，很麻烦，主要是想在windows下用。gz教的话，我记得有一条，该放弃的时候马上放弃 &amp;emsp;&amp;em">
@@ -184,7 +184,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Accueil
+            Home
           </a>
         </li>
       
@@ -258,7 +258,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posté le</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-30T20:41:00+08:00">
                 2018-03-30
@@ -313,8 +313,8 @@
 <p>&emsp;&emsp;会调用AddVariable把声明的变量放到符号表，然后看下有没有初始化数据，有的话就创建一下相应结构。比如说声明了一个数组，那后面的表达式语句肯定会用到这个声明的对象名<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> AstExpression <span class="title">CheckPrimaryExpression</span><span class="params">(AstExpression expr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	Symbol p;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (expr-&gt;op == OP_CONST)</span><br><span class="line">		<span class="keyword">return</span> expr;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (expr-&gt;op == OP_STR)</span><br><span class="line">	&#123;</span><br><span class="line">		expr-&gt;op = OP_ID;</span><br><span class="line">		expr-&gt;val.p = AddString(expr-&gt;ty, expr-&gt;val.p);</span><br><span class="line">		expr-&gt;lvalue = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">return</span> expr;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	p = LookupID(expr-&gt;val.p);</span><br><span class="line">	<span class="keyword">if</span> (p == <span class="literal">NULL</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		Error(&amp;expr-&gt;coord, <span class="string">"Undeclared identifier: %s"</span>, expr-&gt;val.p);</span><br><span class="line">		p = AddVariable(expr-&gt;val.p, T(INT), Level == <span class="number">0</span> ? <span class="number">0</span> : TK_AUTO);</span><br><span class="line">		expr-&gt;ty = T(INT);</span><br><span class="line">		expr-&gt;lvalue = <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (p-&gt;kind == SK_TypedefName)</span><br><span class="line">	&#123;</span><br><span class="line">		Error(&amp;expr-&gt;coord, <span class="string">"Typedef name cannot be used as variable"</span>);</span><br><span class="line">		expr-&gt;ty = T(INT);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (p-&gt;kind == SK_EnumConstant)</span><br><span class="line">	&#123;</span><br><span class="line">		expr-&gt;op = OP_CONST;</span><br><span class="line">		expr-&gt;val = p-&gt;val;</span><br><span class="line">		expr-&gt;ty = T(INT);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		expr-&gt;ty = p-&gt;ty;</span><br><span class="line">		expr-&gt;val.p = p;</span><br><span class="line">		expr-&gt;inreg   = p-&gt;sclass == TK_REGISTER;</span><br><span class="line">		expr-&gt;lvalue  = expr-&gt;ty-&gt;categ != FUNCTION;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> expr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>&emsp;&emsp;表达式的语法分析已经建立好了一个AST树结构，表达式的语义分析就先查符号表有没有对应的变量，查到符号之后，就对expr的AST进行修改，比如是不是左值，是不是寄存器变量，还有非常关键的这个表达式的类型是啥，实际就是对语法树的理解的过程。语义分析也会进行一些优化。</p>
 <h4 id="中间代码生成"><a href="#中间代码生成" class="headerlink" title="中间代码生成"></a>中间代码生成</h4><p>&emsp;&emsp;UCC中间代码就是基于语法树，生成一系列的三元指令，这种指令跟汇编语言很接近，算比较抽象的一部分，我只是大致看完了。实际本质是，对语句、表达式的翻译，其中有一些基本块的操作。代码优化是也是对中间语言来做的。</p>
-<h4 id="目标代码生成"><a href="#目标代码生成" class="headerlink" title="目标代码生成"></a>目标代码生成</h4><p>&emsp;&emsp;这一部分没看，主要是根据模板把中间语句转成汇编语句，然后按格式生成.o文件。由于跑不起来程序，我就放弃了。其实UCC有很多细节，比如二元表达式的语法他用一个循环做完了dn语法分析，类型推导也有点意思，之类的需要一个一个写，我理解也不深，可以参考一下博主名叫sheisc的csdn博客，但是看了别人的分析会影响自己的理解。所以我基本都是自己半看半猜一下代码是什么意思，然后简单写一篇总体的自己的理解。之后会读下另外一个能跑起来的工程，那个需要更久的时间，到时候也会简单总结下，希望下一篇写的好一些。</p>
-<font style="color:transparent"><br>&emsp;&emsp;从来都不是特别喜欢技术，感觉很累，以前也是断断续续看一段，然后放弃，周而复始。只是之前输了很多，心情很差，能专注做一件事情了。听过一句话，大致是“当你输了很多的时候，往往才刚开始输”，想想很对，后面发现也不对，因为当你输了永远赢不了却死也不想输的，会觉得以后再也输不了这么多了。<br></font>
+<h4 id="目标代码生成"><a href="#目标代码生成" class="headerlink" title="目标代码生成"></a>目标代码生成</h4><p>&emsp;&emsp;这一部分没看，主要是根据模板把中间语句转成汇编语句，然后按格式生成.o文件。由于跑不起来程序，我就放弃了。其实UCC有很多细节，比如二元表达式的语法他用一个循环做完了语法分析，类型推导也有点意思，之类的需要一个一个写，我理解也不深，可以参考一下博主名叫sheisc的csdn博客，但是看了别人的分析会影响自己的理解。所以我基本都是自己半看半猜一下代码是什么意思，然后简单写一篇总体的自己的理解。之后会读下另外一个能跑起来的工程，那个需要更久的时间，到时候也会简单总结下，希望下一篇写的好一些。</p>
+<font style="color:transparent"><br>&emsp;&emsp;从来都不是特别喜欢做技术，感觉很累，以前也是断断续续看一段，然后放弃，周而复始。只是之前输了很多，心情很差，能专注做一件事情了。听过一句话，大致是“当你输了很多的时候，往往才刚开始输”，想想很对，后面发现也不对，因为当你输了永远没机会赢却死也不想输的，会觉得以后再也输不了这么多了。<br></font>
       
     </div>
     
@@ -400,10 +400,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table Des Matières
+            Table of Contents
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Ensemble
+            Overview
           </li>
         </ul>
       
@@ -424,7 +424,7 @@
                 <a href="/archives/">
               
                   <span class="site-state-item-count">2</span>
-                  <span class="site-state-item-name">articles</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
@@ -498,7 +498,7 @@
 
 
 
-  <div class="theme-info">Thème &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
 
 
 
